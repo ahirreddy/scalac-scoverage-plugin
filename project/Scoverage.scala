@@ -6,8 +6,9 @@ import com.typesafe.sbt.pgp.PgpKeys
 
 object Scoverage extends Build {
 
-  val Org = "org.scoverage"
-  val Scala = "2.11.4"
+  val Org = "com.databricks.scoverage"
+  //val Scala = "2.11.4"
+  val Scala = "2.10.5"
   val MockitoVersion = "1.9.5"
   val ScalatestVersion = "2.2.2"
 

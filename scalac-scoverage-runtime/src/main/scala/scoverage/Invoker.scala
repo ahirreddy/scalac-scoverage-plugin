@@ -1,17 +1,31 @@
 package scoverage
 
+import java.lang.Runtime
 import java.io.{FileFilter, File, FileWriter}
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.{mutable, Set}
 import scala.collection.concurrent.TrieMap
+import scala.collection.JavaConverters._
 import scala.io.Source
+import scala.util.Random
 
 /** @author Stephen Samuel */
 object Invoker {
 
   private val MeasurementsPrefix = "scoverage.measurements."
-  private val threadFiles = new ThreadLocal[TrieMap[String, FileWriter]]
-  private val ids = TrieMap.empty[(String, Int), Any]
+  private[this] val ids = new ConcurrentHashMap[(String, Int), Boolean]
+  private[this] val JVM_ID = Random.nextLong()
+
+  Runtime.getRuntime().addShutdownHook(new Thread() {
+    override def run(): Unit = {
+      for ((dataDir, id) <- ids.keySet().asScala) {
+        val writer = new FileWriter(measurementFile(dataDir), true)
+        writer.append(id.toString + '\n').flush()
+      }
+      println(s"Finished writing measurement files. JVM_ID: $JVM_ID")
+    }
+  })
 
   /**
    * We record that the given id has been invoked by appending its id to the coverage
@@ -28,29 +42,12 @@ object Invoker {
    * @param id the id of the statement that was invoked
    * @param dataDir the directory where the measurement data is held
    */
-  def invoked(id: Int, dataDir: String): Unit = {
-    // [sam] we can do this simple check to save writing out to a file.
-    // This won't work across JVMs but since there's no harm in writing out the same id multiple
-    // times since for coverage we only care about 1 or more, (it just slows things down to
-    // do it more than once), anything we can do to help is good. This helps especially with code
-    // that is executed many times quickly, eg tight loops.
-    if (!ids.contains(dataDir, id)) {
-      // Each thread writes to a separate measurement file, to reduce contention
-      // and because file appends via FileWriter are not atomic on Windows.
-      var files = threadFiles.get()
-      if (files == null)
-        files = TrieMap.empty[String, FileWriter]
-      threadFiles.set(files)
-
-      val writer = files.getOrElseUpdate(dataDir, new FileWriter(measurementFile(dataDir), true))
-      writer.append(id.toString + '\n').flush()
-
-      ids.put((dataDir, id), ())
-    }
+  final def invoked(id: Int, dataDir: String): Unit = {
+    ids.putIfAbsent((dataDir, id), true)
   }
 
   def measurementFile(dataDir: File): File = measurementFile(dataDir.getAbsolutePath)
-  def measurementFile(dataDir: String): File = new File(dataDir, MeasurementsPrefix + Thread.currentThread.getId)
+  def measurementFile(dataDir: String): File = new File(dataDir, MeasurementsPrefix + JVM_ID)
 
   def findMeasurementFiles(dataDir: String): Array[File] = findMeasurementFiles(new File(dataDir))
   def findMeasurementFiles(dataDir: File): Array[File] = dataDir.listFiles(new FileFilter {
