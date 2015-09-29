@@ -22,6 +22,7 @@ object Invoker {
       for ((dataDir, id) <- ids.keySet().asScala) {
         val writer = new FileWriter(measurementFile(dataDir), true)
         writer.append(id.toString + '\n').flush()
+        writer.close()
       }
       println(s"Finished writing measurement files. JVM_ID: $JVM_ID")
     }
