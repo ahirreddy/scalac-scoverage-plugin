@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+###  ------------------------------- ###
+###  Helper methods for BASH scripts ###
+###  ------------------------------- ###
+if [ ! -d spark/master/repl ]; then
+  git submodule init
+  git submodule update
+fi
+
+hadoop_version="1.2.1-0"
+export SBT_MAVEN_PROFILES="-Phive -Phive-thriftserver -Pspark-ganglia-lgpl"
+export SPARK_HOME=`pwd`/spark
+
+# This is needed for running unit tests for loading configurations.
+export DB_HOME=`pwd`/launch
+
+# if not set in the environment, set up default key for accessing our
+# s3 maven repo in bucket databricks-mvn
+# (user: DatabricksMavenReadOnly)
+if [ ! "$AWS_ACCESS_KEY_ID_DATABRICKS_MVN" ]; then
+    AWS_ACCESS_KEY_ID_DATABRICKS_MVN=AKIAJ6V3VSHTA5RSYEQA
+fi
+if [ ! "$AWS_SECRET_KEY_DATABRICKS_MVN" ]; then
+    AWS_SECRET_KEY_DATABRICKS_MVN=Kaz3cP2s+SQCw73hsFH4IDn2rJzshhDmC6vou3ZY
+fi
+export AWS_ACCESS_KEY_ID_DATABRICKS_MVN AWS_SECRET_KEY_DATABRICKS_MVN
+
+# Note: Pattern match budget increased here because of a compiler error while checking
+# a match for exhaustivity
+java -Xms2048m -Xmx3072m -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=256m -Dsun.net.inetaddr.ttl=0 -Dhadoop.version=$hadoop_version -Dscalac.patmat.analysisBudget=512 -jar sbt/sbt-launch-0.13.1.jar "$@"
