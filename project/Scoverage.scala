@@ -31,14 +31,7 @@ object Scoverage extends Build {
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.scalatest" %% "scalatest" % ScalatestVersion % "test"
     ),
-    publishTo <<= version {
-      (v: String) =>
-        val nexus = "https://oss.sonatype.org/"
-        if (v.trim.endsWith("SNAPSHOT"))
-          Some(Resolver.sonatypeRepo("snapshots"))
-        else
-          Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
+    publishTo := Some("Databricks Repository on S3" at "s3://s3.amazonaws.com/databricks-mvn/release"),
     pomExtra := {
       <url>https://github.com/scoverage/scalac-scoverage-plugin</url>
         <licenses>
