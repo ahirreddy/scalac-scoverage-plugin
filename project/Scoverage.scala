@@ -6,7 +6,7 @@ import com.typesafe.sbt.pgp.PgpKeys
 
 object Scoverage extends Build {
 
-  val Org = "org.scoverage"
+  val Org = "com.databricks"
   // Use 2.10.5 since that's what sbt/UniverseBuild use
   // val Scala = "2.11.4"
   val Scala = "2.10.5"
