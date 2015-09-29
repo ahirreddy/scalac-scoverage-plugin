@@ -7,9 +7,7 @@ import com.typesafe.sbt.pgp.PgpKeys
 object Scoverage extends Build {
 
   val Org = "com.databricks.scoverage"
-  // Use 2.10.5 since that's what sbt/UniverseBuild use
-  // val Scala = "2.11.4"
-  val Scala = "2.10.5"
+  val Scala = "2.11.7"
   val MockitoVersion = "1.9.5"
   val ScalatestVersion = "2.2.2"
 
@@ -18,7 +16,7 @@ object Scoverage extends Build {
   val appSettings = Seq(
     organization := Org,
     scalaVersion := Scala,
-    crossScalaVersions := Seq("2.10.4", "2.11.7"),
+    crossScalaVersions := Seq("2.10.5", "2.11.7"),
     fork in Test := false,
     publishMavenStyle := true,
     publishArtifact in Test := false,
