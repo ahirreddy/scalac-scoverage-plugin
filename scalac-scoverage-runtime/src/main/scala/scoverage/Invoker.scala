@@ -2,6 +2,7 @@ package scoverage
 
 import java.lang.Runtime
 import java.io.{FileFilter, File, FileWriter}
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.{mutable, Set}
@@ -14,8 +15,10 @@ import scala.util.Random
 object Invoker {
 
   private val MeasurementsPrefix = "scoverage.measurements."
+  // Key: (Path to measurement directory, scoverage statement id)
+  // Value: Doesn't matter, this map is used as a set
   private[this] val ids = new ConcurrentHashMap[(String, Int), Boolean]
-  private[this] val JVM_ID = Random.nextLong()
+  private[this] val JVM_ID = UUID.randomUUID()
 
   Runtime.getRuntime().addShutdownHook(new Thread() {
     override def run(): Unit = {
