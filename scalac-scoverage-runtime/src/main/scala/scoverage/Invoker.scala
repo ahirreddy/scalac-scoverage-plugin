@@ -22,12 +22,24 @@ object Invoker {
 
   Runtime.getRuntime().addShutdownHook(new Thread() {
     override def run(): Unit = {
-      for ((dataDir, id) <- ids.keySet().asScala) {
+      val statements: Set[(String, Int)] = ids.keySet().asScala
+      // scoverage data directory -> ids of statements invoked
+      val perDirectory: Map[String, Set[Int]] = statements
+        // group by datadir
+        .groupBy(_._1)
+        // extract only statement ids
+        .mapValues(_.map(_._2))
+
+      for ((dataDir, statements) <- perDirectory) {
         val writer = new FileWriter(measurementFile(dataDir), true)
-        writer.append(id.toString + '\n').flush()
-        writer.close()
+        try {
+          statements.foreach(id => writer.append(id.toString + '\n').flush())
+        } finally {
+          writer.close()
+        }
       }
-      println(s"Finished writing measurement files. JVM_ID: $JVM_ID")
+
+      println(s"[info] Finished writing measurement files. JVM_ID: $JVM_ID")
     }
   })
 
